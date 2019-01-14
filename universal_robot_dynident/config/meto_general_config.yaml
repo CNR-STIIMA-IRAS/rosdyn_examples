@@ -4,11 +4,16 @@ meto_cfg:
   acceleration_scaling: 1.0
   speed_scaling: 1.0
   verbose: true
-  type: "arm"
-  group_name: "ur10"
   urdf_param: "robot_description"
+  urdf_name: "cybersort"
   trajectory_namespace: "ident_trj"
-  controller_joint_names: ['joint_1','joint_2','joint_3','joint_4','joint_5','joint_6']
+  controller_joint_names: 
+  - ur10_shoulder_pan_joint
+  - ur10_shoulder_lift_joint
+  - ur10_elbow_joint
+  - ur10_wrist_1_joint
+  - ur10_wrist_2_joint
+  - ur10_wrist_3_joint
 
     
   opt_cfg:
@@ -17,5 +22,5 @@ meto_cfg:
     point_per_region: 5
     trials: 3
   filter:
-    frequency: 20
+    frequency: 50
     sample_period: 0.008

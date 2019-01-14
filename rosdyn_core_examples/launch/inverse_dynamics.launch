@@ -1,0 +1,6 @@
+<launch>
+    
+  <rosparam command="load" file="/home/maxwell/.ros/cybersort_estimated.yaml" />
+  <param name="robot_description" textfile="/home/maxwell/.ros/cybersort_estimated.urdf" />
+  <node pkg="rosdyn_core_examples" type="inverse_dynamics" name="inverse_dynamics"  output="screen" />
+</launch>
