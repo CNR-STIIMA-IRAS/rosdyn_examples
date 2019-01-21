@@ -32,9 +32,8 @@ int main(int argc, char **argv){
   Eigen::Vector3d grav;
   grav << 0, 0, -9.806;
   
-  boost::shared_ptr<rosdyn::Link> root_link(new rosdyn::Link());  
-  root_link->fromUrdf(model.root_link_);
-  boost::shared_ptr<rosdyn::Chain> chain(new rosdyn::Chain(root_link, base_frame,tool_frame, grav));
+  
+  boost::shared_ptr<rosdyn::Chain> chain = rosdyn::createChain(model,base_frame,tool_frame,grav);
   
   ROS_INFO("%s",model.getName().c_str());
   chain->setInputJointsName(model_js.name);
