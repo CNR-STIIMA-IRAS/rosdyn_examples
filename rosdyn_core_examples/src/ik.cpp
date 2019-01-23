@@ -38,7 +38,7 @@ int main(int argc, char **argv)
   grav << 0, 0, -9.806;
   
   
-  double gain=1e-1;
+  double gain=1;
   
   boost::shared_ptr<rosdyn::Chain> chain = rosdyn::createChain(model,base_frame,tool_frame,grav);
   
@@ -52,7 +52,7 @@ int main(int argc, char **argv)
   sol(0)+=0.01;
   sol(1)+=0.01;
   sol(2)+=0.01;
-  sol(3)+=0.01;
+  sol(3)-=0.1;
   sol(4)+=0.01;
   sol(5)+=0.01;
   
@@ -61,7 +61,10 @@ int main(int argc, char **argv)
   
   Eigen::VectorXd q=seed;
   
-  for (unsigned int idx=0;idx<100;idx++)
+  ros::Time t0=ros::Time::now();
+  unsigned int idx=0;
+  
+  for (idx=0;idx<1000;idx++)
   {
     Eigen::Affine3d Tba=chain->getTransformation(q); // base <- actual
     
@@ -73,9 +76,21 @@ int main(int argc, char **argv)
     
     Eigen::JacobiSVD<Eigen::MatrixXd> pinv_J(jacobian_of_a_in_b,  Eigen::ComputeThinU | Eigen::ComputeThinV);
     Eigen::VectorXd joint_error=pinv_J.solve(cart_error_in_b);
-    
-    ROS_INFO_STREAM("Cartesian error = " << cart_error_in_b.transpose());
-    ROS_INFO_STREAM("Configuration error = " << joint_error.transpose() << "\n");
+    if (pinv_J.singularValues()(pinv_J.cols()-1)==0)
+    {
+      ROS_WARN("SINGULARITY POINT");
+      break;
+    }
+    else if (pinv_J.singularValues()(0)/pinv_J.singularValues()(pinv_J.cols()-1) > 1e2)
+    {
+      ROS_WARN("SINGULARITY POINT");
+      break;
+    }
+    if (cart_error_in_b.norm()<1e-5)
+    {
+      ROS_INFO("success");
+      break;
+    }
     
     if (joint_error.norm()>0.1)
       joint_error/=joint_error.norm()*0.1;
@@ -83,9 +98,12 @@ int main(int argc, char **argv)
     
    
   }
+  ros::Time t1=ros::Time::now();
+  
   
   ROS_INFO_STREAM("sol= " << sol.transpose());
   ROS_INFO_STREAM("q = " << q.transpose());
+  ROS_INFO("iteration = %u, time = %f", idx,(t1-t0).toSec());
   
   return 0;
 }
