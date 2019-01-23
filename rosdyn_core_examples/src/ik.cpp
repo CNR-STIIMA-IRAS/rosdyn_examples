@@ -37,73 +37,83 @@ int main(int argc, char **argv)
   Eigen::Vector3d grav;
   grav << 0, 0, -9.806;
   
-  
-  double gain=1;
+  bool use_svd=false;
+  double gain=0.5;
   
   boost::shared_ptr<rosdyn::Chain> chain = rosdyn::createChain(model,base_frame,tool_frame,grav);
-  
-  ROS_INFO("%s",model.getName().c_str());
   chain->setInputJointsName(model_js.name);
   
-  Eigen::VectorXd seed(6);
-  seed.setRandom();
-  
-  Eigen::VectorXd sol=seed;
-  sol(0)+=0.01;
-  sol(1)+=0.01;
-  sol(2)+=0.01;
-  sol(3)-=0.1;
-  sol(4)+=0.01;
-  sol(5)+=0.01;
-  
-  
-  Eigen::Affine3d Tbt=chain->getTransformation(sol); // base <- target
-  
-  Eigen::VectorXd q=seed;
-  
-  ros::Time t0=ros::Time::now();
-  unsigned int idx=0;
-  
-  for (idx=0;idx<1000;idx++)
+  for (unsigned int itrial = 0;itrial<10;itrial++)
   {
-    Eigen::Affine3d Tba=chain->getTransformation(q); // base <- actual
+    Eigen::VectorXd seed(6);
+    seed.setRandom();
     
+    Eigen::VectorXd sol=seed;
+    sol(0)+=0.05;
+    sol(1)+=0.01;
+    sol(2)+=0.01;
+    sol(3)-=0.01;
+    sol(4)+=0.01;
+    sol(5)+=0.01;
+    
+    
+    Eigen::Affine3d Tbt=chain->getTransformation(sol); // base <- target
+    
+    Eigen::VectorXd q=seed;
+    
+    ros::Time t0=ros::Time::now();
+    unsigned int idx=0;
     Eigen::VectorXd cart_error_in_b;
-    rosdyn::getFrameDistance(Tbt,Tba,cart_error_in_b);
+      
+    for (idx=0;idx<100;idx++)
+    {
+      Eigen::Affine3d Tba=chain->getTransformation(q); // base <- actual
+      
+      rosdyn::getFrameDistance(Tbt,Tba,cart_error_in_b);
 
-    Eigen::MatrixXd jacobian_of_a_in_b = chain->getJacobian(q);
-   
+      if (cart_error_in_b.norm()<1e-5)
+      {
+        ROS_INFO("success");
+        break;
+      }
+      
+      Eigen::MatrixXd jacobian_of_a_in_b = chain->getJacobian(q);
     
-    Eigen::JacobiSVD<Eigen::MatrixXd> pinv_J(jacobian_of_a_in_b,  Eigen::ComputeThinU | Eigen::ComputeThinV);
-    Eigen::VectorXd joint_error=pinv_J.solve(cart_error_in_b);
-    if (pinv_J.singularValues()(pinv_J.cols()-1)==0)
-    {
-      ROS_WARN("SINGULARITY POINT");
-      break;
-    }
-    else if (pinv_J.singularValues()(0)/pinv_J.singularValues()(pinv_J.cols()-1) > 1e2)
-    {
-      ROS_WARN("SINGULARITY POINT");
-      break;
-    }
-    if (cart_error_in_b.norm()<1e-5)
-    {
-      ROS_INFO("success");
-      break;
-    }
+      Eigen::VectorXd joint_error;
+      
+      if (use_svd)
+      {
+        Eigen::JacobiSVD<Eigen::MatrixXd> pinv_J(jacobian_of_a_in_b,  Eigen::ComputeThinU | Eigen::ComputeThinV);
+        Eigen::VectorXd joint_error=pinv_J.solve(cart_error_in_b);
+        if (pinv_J.singularValues()(pinv_J.cols()-1)==0)
+        {
+          ROS_WARN("SINGULARITY POINT");
+          break;
+        }
+        else if (pinv_J.singularValues()(0)/pinv_J.singularValues()(pinv_J.cols()-1) > 1e2)
+        {
+          ROS_WARN("SINGULARITY POINT");
+          break;
+        }
+      }
+      else 
+        joint_error=jacobian_of_a_in_b.inverse()*cart_error_in_b;
+      
+      
+      if (joint_error.norm()>0.1)
+        joint_error/=joint_error.norm()*0.1;
+      q+=gain*joint_error;
+      
     
-    if (joint_error.norm()>0.1)
-      joint_error/=joint_error.norm()*0.1;
-    q+=gain*joint_error;
+    }
+    ros::Time t1=ros::Time::now();
     
-   
+    if (cart_error_in_b.norm()>=1e-5)
+      ROS_WARN("FAIL");
+
+    ROS_INFO_STREAM("sol= " << sol.transpose());
+    ROS_INFO_STREAM("q = " << q.transpose());
+    ROS_INFO("iteration = %u, time = %f", idx,(t1-t0).toSec());
   }
-  ros::Time t1=ros::Time::now();
-  
-  
-  ROS_INFO_STREAM("sol= " << sol.transpose());
-  ROS_INFO_STREAM("q = " << q.transpose());
-  ROS_INFO("iteration = %u, time = %f", idx,(t1-t0).toSec());
-  
   return 0;
 }
