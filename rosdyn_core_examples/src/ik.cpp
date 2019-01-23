@@ -40,7 +40,7 @@ int main(int argc, char **argv)
   bool use_svd=false;
   bool use_FullPivLU=true;
   
-  double gain=0.5;
+  double gain=1.0;
   
   boost::shared_ptr<rosdyn::Chain> chain = rosdyn::createChain(model,base_frame,tool_frame,grav);
   chain->setInputJointsName(model_js.name);
@@ -51,13 +51,13 @@ int main(int argc, char **argv)
     seed.setRandom();
     
     Eigen::VectorXd sol=seed;
-    sol(0)+=0.05;
-    sol(1)+=0.01;
-    sol(2)+=0.01;
-    sol(3)-=0.01;
-    sol(4)+=0.01;
-    sol(5)+=0.01;
-    
+//     sol(0)+=0.05;
+//     sol(1)+=0.01;
+//     sol(2)+=0.01;
+//     sol(3)-=0.01;
+//     sol(4)+=0.01;
+    sol(5)+=0.2;
+
     
     Eigen::Affine3d Tbt=chain->getTransformation(sol); // base <- target
     
@@ -86,6 +86,7 @@ int main(int argc, char **argv)
       if (use_svd)
       {
         Eigen::JacobiSVD<Eigen::MatrixXd> pinv_J(jacobian_of_a_in_b,  Eigen::ComputeThinU | Eigen::ComputeThinV);
+        
         Eigen::VectorXd joint_error=pinv_J.solve(cart_error_in_b);
         if (pinv_J.singularValues()(pinv_J.cols()-1)==0)
         {
@@ -106,9 +107,9 @@ int main(int argc, char **argv)
       else 
         joint_error=jacobian_of_a_in_b.inverse()*cart_error_in_b;
       
-      
+      ROS_INFO_STREAM("joint_error = " << joint_error.transpose());
       if (joint_error.norm()>0.1)
-        joint_error/=joint_error.norm()*0.1;
+        joint_error*=(0.1/joint_error.norm());
       q+=gain*joint_error;
       
     
