@@ -20,3 +20,10 @@ target_link_libraries(inverse_dynamics
   ${catkin_LIBRARIES}
 )
 
+
+add_executable(inverse_kinematics src/ik.cpp)
+add_dependencies(inverse_kinematics ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(inverse_kinematics
+  ${catkin_LIBRARIES}
+)
+
