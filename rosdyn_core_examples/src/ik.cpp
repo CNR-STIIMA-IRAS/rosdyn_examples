@@ -38,6 +38,8 @@ int main(int argc, char **argv)
   grav << 0, 0, -9.806;
   
   bool use_svd=false;
+  bool use_FullPivLU=true;
+  
   double gain=0.5;
   
   boost::shared_ptr<rosdyn::Chain> chain = rosdyn::createChain(model,base_frame,tool_frame,grav);
@@ -95,6 +97,11 @@ int main(int argc, char **argv)
           ROS_WARN("SINGULARITY POINT");
           break;
         }
+      }
+      else if (use_FullPivLU)
+      {
+        Eigen::FullPivLU<Eigen::MatrixXd> lu(jacobian_of_a_in_b);
+        joint_error=lu.solve(cart_error_in_b);
       }
       else 
         joint_error=jacobian_of_a_in_b.inverse()*cart_error_in_b;
