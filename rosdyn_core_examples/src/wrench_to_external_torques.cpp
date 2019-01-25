@@ -102,29 +102,30 @@ int main(int argc, char **argv)
 
     Eigen::MatrixXd jacobian_of_a_in_b = chain->getJacobian( q );
     Eigen::JacobiSVD<Eigen::MatrixXd> pinv_J(jacobian_of_a_in_b,  Eigen::ComputeThinU | Eigen::ComputeThinV);
-    if (pinv_J.singularValues()(pinv_J.cols()-1)==0)
+
+    double no_singularity=1;
+    if ( (pinv_J.singularValues()(pinv_J.cols()-1)==0) || (pinv_J.singularValues()(0)/pinv_J.singularValues()(pinv_J.cols()-1) > 1e2))
     {
-      ROS_WARN_STREAM("SINGULARITY POINT (ellipsoid degenerated)" << q.transpose() );
-      continue;
-    }
-    else if (pinv_J.singularValues()(0)/pinv_J.singularValues()(pinv_J.cols()-1) > 1e2)
-    {
+      no_singularity=0;
+
       ROS_WARN_STREAM_THROTTLE(5,"SINGULARITY POINT (ellispoid deformed)");
       ROS_WARN_STREAM_THROTTLE(5,"  q        : " << q.transpose() );
       ROS_WARN_STREAM_THROTTLE(5,"  det      : " << jacobian_of_a_in_b.determinant() );
-      ROS_WARN_STREAM_THROTTLE(5,"  sin. val.: " << pinv_J.singularValues() );
-      continue;
+      ROS_WARN_STREAM_THROTTLE(5,"  sin. val.: " << pinv_J.singularValues().transpose() );
+
     }
 
-    Eigen::VectorXd external_torque = jacobian_of_a_in_b.transpose() * wrench;
+    Eigen::VectorXd external_torque = 1 * jacobian_of_a_in_b.transpose() * wrench;
 
     sensor_msgs::JointState external_torque_msg;
 
     external_torque_msg.name = model_js.name;
     external_torque_msg.effort.resize(model_js.name.size());
+    external_torque_msg.position.resize(model_js.name.size());
     for(unsigned int i=0; i<external_torque_msg.effort.size();i++)
     {
-      external_torque_msg.effort.at(i) = external_torque(i);
+      external_torque_msg.position.at(i) = q(i);
+      external_torque_msg.effort.at(i) = no_singularity*external_torque(i);
     }
 
     external_torque_pub.publish( external_torque_msg );
