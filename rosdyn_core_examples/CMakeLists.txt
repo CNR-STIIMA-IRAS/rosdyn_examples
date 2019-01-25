@@ -26,4 +26,3 @@ add_dependencies(inverse_kinematics ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin
 target_link_libraries(inverse_kinematics
   ${catkin_LIBRARIES}
 )
-

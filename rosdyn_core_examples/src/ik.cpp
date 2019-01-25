@@ -16,20 +16,21 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
   ros::Rate rate(125);
   
-  std::string base_frame = "ur10_base_link";
-  std::string tool_frame = "ur10_ee_link";                 //"ee_link";
+  std::string base_frame = "world";
+  std::string tool_frame = "ur5_ee_link";                 //"ee_link";
   
   sensor_msgs::JointState model_js;
   sensor_msgs::JointState extra_js;
-  model_js.name.resize(6);
-  model_js.position.resize(6);
-  model_js.velocity.resize(6);
-  model_js.name.at(0) = "ur10_shoulder_pan_joint";
-  model_js.name.at(1) = "ur10_shoulder_lift_joint";
-  model_js.name.at(2) = "ur10_elbow_joint";
-  model_js.name.at(3) = "ur10_wrist_1_joint";
-  model_js.name.at(4) = "ur10_wrist_2_joint";
-  model_js.name.at(5) = "ur10_wrist_3_joint";
+  model_js.name.resize(7);
+  model_js.position.resize(7);
+  model_js.velocity.resize(7);
+  model_js.name.at(0) = "linear_motor_cursor_joint";
+  model_js.name.at(1) = "ur5_shoulder_pan_joint";
+  model_js.name.at(2) = "ur5_shoulder_lift_joint";
+  model_js.name.at(3) = "ur5_elbow_joint";
+  model_js.name.at(4) = "ur5_wrist_1_joint";
+  model_js.name.at(5) = "ur5_wrist_2_joint";
+  model_js.name.at(6) = "ur5_wrist_3_joint";
   
   urdf::Model model;
   model.initParam("robot_description");
@@ -40,24 +41,24 @@ int main(int argc, char **argv)
   bool use_svd=false;
   bool use_FullPivLU=true;
   
-  double gain=1.0;
+  double gain=1;
   
   boost::shared_ptr<rosdyn::Chain> chain = rosdyn::createChain(model,base_frame,tool_frame,grav);
   chain->setInputJointsName(model_js.name);
   
-  for (unsigned int itrial = 0;itrial<10;itrial++)
+  
+  double ntrial=1000;
+  double fail=0;
+  double success=0;
+  double avg_time=0;
+  double avg_iter=0;
+  for (double itrial = 0;itrial<ntrial;itrial++)
   {
-    Eigen::VectorXd seed(6);
+    Eigen::VectorXd seed(chain->getActiveJointsNumber());
     seed.setRandom();
     
     Eigen::VectorXd sol=seed;
-//     sol(0)+=0.05;
-//     sol(1)+=0.01;
-//     sol(2)+=0.01;
-//     sol(3)-=0.01;
-//     sol(4)+=0.01;
-    sol(5)+=0.2;
-
+    sol.setRandom();
     
     Eigen::Affine3d Tbt=chain->getTransformation(sol); // base <- target
     
@@ -67,18 +68,21 @@ int main(int argc, char **argv)
     unsigned int idx=0;
     Eigen::VectorXd cart_error_in_b;
       
-    for (idx=0;idx<100;idx++)
+    for (idx=0;idx<30;idx++)
     {
       Eigen::Affine3d Tba=chain->getTransformation(q); // base <- actual
       
       rosdyn::getFrameDistance(Tbt,Tba,cart_error_in_b);
+//       rosdyn::getFrameDistanceQuat(Tbt,Tba,cart_error_in_b);
 
+    
+      
       if (cart_error_in_b.norm()<1e-5)
       {
-        ROS_INFO("success");
         break;
       }
       
+      cart_error_in_b=cart_error_in_b*gain;
       Eigen::MatrixXd jacobian_of_a_in_b = chain->getJacobian(q);
     
       Eigen::VectorXd joint_error;
@@ -107,21 +111,29 @@ int main(int argc, char **argv)
       else 
         joint_error=jacobian_of_a_in_b.inverse()*cart_error_in_b;
       
-      ROS_INFO_STREAM("joint_error = " << joint_error.transpose());
-      if (joint_error.norm()>0.1)
-        joint_error*=(0.1/joint_error.norm());
-      q+=gain*joint_error;
+      if (joint_error.norm()>0.4)
+        joint_error*=(0.4/joint_error.norm());
+      q+=joint_error;
       
     
     }
     ros::Time t1=ros::Time::now();
     
     if (cart_error_in_b.norm()>=1e-5)
-      ROS_WARN("FAIL");
+      fail++;
+    else 
+    {
+      avg_time=(avg_time*success+(t1-t0).toSec())/(success+1.0);
+      avg_iter=(avg_iter*success+idx)/(success+1.0);
+      
+      success++;
+    }
 
-    ROS_INFO_STREAM("sol= " << sol.transpose());
-    ROS_INFO_STREAM("q = " << q.transpose());
-    ROS_INFO("iteration = %u, time = %f", idx,(t1-t0).toSec());
   }
+
+  ROS_INFO("solve rate = %f %%",(100.0*success/ntrial));
+  ROS_INFO("Avg Time = %f [ms]",avg_time*1000);
+  ROS_INFO("Avg Iterations = %f",avg_iter);
+  
   return 0;
 }
