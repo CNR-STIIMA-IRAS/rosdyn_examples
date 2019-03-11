@@ -67,7 +67,7 @@ int main(int argc, char **argv)
     ros::Time t0=ros::Time::now();
     unsigned int idx=0;
     Eigen::VectorXd cart_error_in_b;
-      
+
     for (idx=0;idx<30;idx++)
     {
       Eigen::Affine3d Tba=chain->getTransformation(q); // base <- actual
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
       rosdyn::getFrameDistance(Tbt,Tba,cart_error_in_b);
 //       rosdyn::getFrameDistanceQuat(Tbt,Tba,cart_error_in_b);
 
-    
+
       
       if (cart_error_in_b.norm()<1e-5)
       {
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
       
       cart_error_in_b=cart_error_in_b*gain;
       Eigen::MatrixXd jacobian_of_a_in_b = chain->getJacobian(q);
-    
+
       Eigen::VectorXd joint_error;
       
       if (use_svd)
@@ -108,20 +108,20 @@ int main(int argc, char **argv)
         Eigen::FullPivLU<Eigen::MatrixXd> lu(jacobian_of_a_in_b);
         joint_error=lu.solve(cart_error_in_b);
       }
-      else 
+      else
         joint_error=jacobian_of_a_in_b.inverse()*cart_error_in_b;
       
       if (joint_error.norm()>0.4)
         joint_error*=(0.4/joint_error.norm());
       q+=joint_error;
-      
-    
+
+
     }
     ros::Time t1=ros::Time::now();
     
     if (cart_error_in_b.norm()>=1e-5)
       fail++;
-    else 
+    else
     {
       avg_time=(avg_time*success+(t1-t0).toSec())/(success+1.0);
       avg_iter=(avg_iter*success+idx)/(success+1.0);

@@ -116,7 +116,6 @@ int main(int argc, char **argv)
     }
 
     Eigen::VectorXd external_torque = 1 * jacobian_of_a_in_b.transpose() * wrench;
-
     sensor_msgs::JointState external_torque_msg;
 
     external_torque_msg.name = model_js.name;

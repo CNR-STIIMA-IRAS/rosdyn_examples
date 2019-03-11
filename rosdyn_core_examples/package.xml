@@ -59,6 +59,8 @@
   <exec_depend>rosdyn_core</exec_depend>
   <exec_depend>subscription_notifier</exec_depend>
 
+<depend>eigen_matrix_utils</depend>
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
