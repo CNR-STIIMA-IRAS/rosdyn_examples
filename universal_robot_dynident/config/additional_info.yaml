@@ -1,17 +1,74 @@
-cybersort:
-  joint_names: 
-  - ur10_shoulder_pan_joint
-  - ur10_shoulder_lift_joint
-  - ur10_elbow_joint
-  - ur10_wrist_1_joint
-  - ur10_wrist_2_joint
-  - ur10_wrist_3_joint
-  base_link: "ur10_base_link"
-  tool_link: "ur10_tool0"
-  gravity: [0, 0, -9.806]
-  
+# This file contains additional information that are not store in the URDF file
+# namespace is the robot name defined in the URDF file
 
-  ur10_shoulder_pan_joint :
+ur10:
+  # fixed frame
+  base_link: "ur10_35_base_link"
+  # end-effector frame
+  tool_link: "ur10_35_tool0"
+  #gravity vector
+  gravity: [0, 0, -9.806]
+
+
+  # List of the Joint with friction
+  joint_names: 
+  - ur10_35_shoulder_pan_joint
+  - ur10_35_shoulder_lift_joint
+  - ur10_35_elbow_joint
+  - ur10_35_wrist_1_joint
+  - ur10_35_wrist_2_joint
+  - ur10_35_wrist_3_joint
+  
+  # Joint friction types:
+  # Ideal:        0.0
+  # Polynomial1:  coloumb*sign(velocity)+viscous*velocity
+  # Polynomial2:  coloumb*sign(velocity)+first_order_viscous*velocity+second_order_viscous*sign(velocity)*velocity^2
+  #
+  # sign(velocity) =  1                      if velocity>min_velocity
+  #                  -1                      if velocity<-min_velocity
+  #                   velocity/min_velocity  otherwise
+  #
+  # velocity if saturated betwen  [-max_velocity, max_velocity]
+
+  ur10_35_shoulder_pan_joint :
+    friction:
+
+      type: "Polynomial1"
+      constants: 
+        max_velocity: 10
+        min_velocity: 1.0e-6
+      coefficients:
+        viscous: 0   # it will be change by the RosDyn during identification
+        coloumb: 0   # it will be change by the RosDyn during identification
+
+  ur10_35_shoulder_lift_joint:
+
+    friction:
+      type: "Polynomial2"
+      constants: 
+        max_velocity: 10
+        min_velocity: 1.0e-6
+      coefficients:
+        first_order_viscous: 0
+        second_order_viscous: 0
+        coloumb: 0
+        
+  ur10_35_elbow_joint:
+
+    friction:
+      type: "Ideal"
+
+  ur10_35_wrist_1_joint:
+    friction:
+      type: "Polynomial1"
+      constants: 
+        max_velocity: 10
+        min_velocity: 1.0e-6
+      coefficients:
+        viscous: 0
+        coloumb: 0
+        
+  ur10_35_wrist_2_joint:
 
     friction:
       type: "Polynomial1"
@@ -21,59 +78,14 @@ cybersort:
       coefficients:
         viscous: 0
         coloumb: 0
-  ur10_shoulder_lift_joint:
-
-    friction:
-      type: "Polynomial2"
-      constants: 
-        max_velocity: 10
-        min_velocity: 1.0e-10
-      coefficients:
-        first_order_viscous: 0
-        second_order_viscous: 0
-        coloumb: 50
         
-  ur10_elbow_joint:
-
-    friction:
-      type: "Ideal"
-    friction:
-      type: "Polynomial2"
-      constants: 
-        max_velocity: 10
-        min_velocity: 1.0e-1
-      coefficients:
-        first_order_viscous: 0
-        second_order_viscous: 1
-        coloumb: 50
-  ur10_wrist_1_joint:
-    friction:
-      type: "Polynomial1"
-      constants: 
-        max_velocity: 10
-        min_velocity: 1.0e-10
-      coefficients:
-        viscous: 0
-        coloumb: 0
-        
-  ur10_wrist_2_joint:
+  ur10_35_wrist_3_joint:
 
     friction:
       type: "Polynomial1"
       constants: 
         max_velocity: 10
-        min_velocity: 1.0e-10
-      coefficients:
-        viscous: 0
-        coloumb: 0
-        
-  ur10_wrist_3_joint:
-
-    friction:
-      type: "Polynomial1"
-      constants: 
-        max_velocity: 10
-        min_velocity: 1.0e-10
+        min_velocity: 1.0e-6
       coefficients:
         viscous: 0
         coloumb: 0
