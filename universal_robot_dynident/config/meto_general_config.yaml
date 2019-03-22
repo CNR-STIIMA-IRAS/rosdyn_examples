@@ -21,7 +21,7 @@ meto_cfg:
   # default value of the identification trajectory
   trajectory_namespace: "ident_trj"
 
-  # list of controlled joint names
+  # list of controlled joint of the move group (the joints which provide effort information, typically the motorized ones)
   controller_joint_names: 
   - ur10_35_shoulder_pan_joint
   - ur10_35_shoulder_lift_joint

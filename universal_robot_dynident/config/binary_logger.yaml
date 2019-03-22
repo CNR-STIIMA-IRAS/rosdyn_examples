@@ -1,33 +1,25 @@
-start_log: true
+start_log: true # flag to automatically start logging joint_states during trajectory execution.
 
 binary_logger:
   num_worker_threads: 10
-  # test_path: is the path where the binary file will be saved.
-  # NOTE: for RosDyn, leave empty the destination directory will be '/home/user/.ros')
-  test_path: ""
-  
+
   # manager_name: name of the nodlet manager (need to be equal to the name in the launch file)
   manager_name: 'binary_logger'
 
-  # list of nodelet (unrelated to binary_logger package) that the user do not want to stop
-  unstoppable_nodelets: []
-  
   # Type of the topic that need to be logged (supported JointState, Imu, PoseStamped, WrenchStamped, Float64MultiArray)
-  topic_type: 
+  topic_type:
     - 'JointState'
 
-  
-
   JointState:
-    # List of the topic to be acquired 
+    # List of the topic to be acquired
     topic_names:
-      - '/ur10_35/joint_states'  # feedback motor/link
-      
-    # Max acquisition time (to be specified for each topic)
+      - '/ur10/joint_states'  # put the joint_states topic with position, velocity and effort information
+
+    # Maximum acquisition time (to be specified for each topic)
     duration:
       - 400 #[s]
-  
+
     # Message decimation (to be specified for each topic)
     decimation:
-      - 1 
-  
+      - 1
+
