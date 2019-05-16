@@ -13,7 +13,7 @@ binary_logger:
   JointState:
     # List of the topic to be acquired
     topic_names:
-      - '/ur10/joint_states'  # put the joint_states topic with position, velocity and effort information
+      - '/ur10_35/joint_states'  # put the joint_states topic with position, velocity and effort information
 
     # Maximum acquisition time (to be specified for each topic)
     duration:
