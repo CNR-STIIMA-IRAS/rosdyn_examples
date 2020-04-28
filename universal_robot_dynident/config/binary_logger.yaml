@@ -5,6 +5,9 @@ binary_logger:
 
   # manager_name: name of the nodlet manager (need to be equal to the name in the launch file)
   manager_name: 'binary_logger'
+  
+  # list of nodelet (unrelated to binary_logger package) that the user do not want to stop
+  unstoppable_nodelets: []
 
   # Type of the topic that need to be logged (supported JointState, Imu, PoseStamped, WrenchStamped, Float64MultiArray)
   topic_type:
