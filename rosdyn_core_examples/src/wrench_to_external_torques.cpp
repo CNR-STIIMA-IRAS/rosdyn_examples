@@ -78,7 +78,7 @@ int main(int argc, char **argv)
   Eigen::Vector3d grav;
   grav << 0, 0, -9.806;
 
-  boost::shared_ptr<rosdyn::Chain> chain = rosdyn::createChain(model,base_frame,tool_frame,grav);
+  rosdyn::ChainPtr chain = rosdyn::createChain(model,base_frame,tool_frame,grav);
   chain->setInputJointsName(model_js.name);
 
   ros::Publisher external_torque_pub = nh.advertise<sensor_msgs::JointState>("external_torques",1);

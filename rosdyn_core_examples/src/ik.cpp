@@ -43,7 +43,7 @@ int main(int argc, char **argv)
   
   double gain=1;
   
-  boost::shared_ptr<rosdyn::Chain> chain = rosdyn::createChain(model,base_frame,tool_frame,grav);
+  rosdyn::ChainPtr chain = rosdyn::createChain(model,base_frame,tool_frame,grav);
   chain->setInputJointsName(model_js.name);
   
   

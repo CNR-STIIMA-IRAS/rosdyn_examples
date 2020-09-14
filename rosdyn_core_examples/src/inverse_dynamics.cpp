@@ -32,7 +32,7 @@ int main(int argc, char **argv){
   Eigen::Vector3d grav;
   grav << 0, 0, -9.806;
   
-  boost::shared_ptr<rosdyn::Chain> chain = rosdyn::createChain(model,base_frame,tool_frame,grav);
+  rosdyn::ChainPtr chain = rosdyn::createChain(model,base_frame,tool_frame,grav);
   
   ROS_INFO("%s",model.getName().c_str());
   chain->setInputJointsName(model_js.name);
