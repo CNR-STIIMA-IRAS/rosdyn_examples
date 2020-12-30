@@ -6,9 +6,10 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rosdyn_core
   subscription_notifier
+  eigen_matrix_utils
 )
 catkin_package(
- CATKIN_DEPENDS roscpp rosdyn_core subscription_notifier
+ CATKIN_DEPENDS roscpp rosdyn_core subscription_notifier eigen_matrix_utils
  DEPENDS 
 )
 include_directories(
