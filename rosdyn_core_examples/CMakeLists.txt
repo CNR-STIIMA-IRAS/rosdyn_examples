@@ -28,9 +28,14 @@ target_link_libraries(inverse_kinematics
   ${catkin_LIBRARIES}
 )
 
-add_executable(wrench_to_external_torques src/wrench_to_external_torques.cpp)
-add_dependencies(wrench_to_external_torques ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(wrench_to_external_torques
+
+add_executable(external_wrench_test src/external_wrench_test.cpp)
+add_dependencies(external_wrench_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(external_wrench_test
   ${catkin_LIBRARIES}
 )
+
+
+
+
 
